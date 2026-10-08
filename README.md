@@ -26,7 +26,6 @@ A principal unidade temporal da análise é o **ciclo comercial**.
 
 ## Pipeline
 
-text
 FONTES
    ↓
 AUDITORIA
