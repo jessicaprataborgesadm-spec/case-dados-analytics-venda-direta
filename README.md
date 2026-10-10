@@ -38,7 +38,11 @@ streamlit run dashboard/app.py
 
 O dashboard lê os CSVs sintéticos da pasta `data/`. A versão atual não exige credenciais do BigQuery e não executa consultas pagas para exibir as páginas.
 
-<!-- Antes de divulgar, adicionar aqui a URL pública do app no Streamlit Community Cloud. -->
+### Acessar o dashboard publicado
+
+[**Abrir o dashboard interativo no Streamlit**](https://case-dados-analytics-venda-direta-igqqlepevblogaks2qkdec.streamlit.app/)
+
+Explore as cinco páginas da aplicação: Visão geral, Conciliação do GMV, Diagnóstico do ciclo, Produtividade e Mix de produtos. O dashboard utiliza exclusivamente os dados sintéticos presentes neste repositório.
 
 ## Arquitetura do projeto
 
