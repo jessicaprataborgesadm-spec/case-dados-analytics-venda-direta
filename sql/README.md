@@ -1,39 +1,28 @@
-
 # SQL | Case Dados & Analytics
 
-Esta pasta contém as consultas SQL utilizadas na reconstrução técnica do case de Dados & Analytics para portfólio.
-
-Os scripts foram preparados para **BigQuery Standard SQL** e utilizam exclusivamente as fontes sintéticas disponíveis na pasta `data/`.
-
-## Scripts
-
-### `01_auditoria_fontes.sql`
-Executa verificações de qualidade: volume de registros, valores nulos, duplicidades, integridade referencial e validações de domínio.
-
-### `02_tabelas_analiticas.sql`
-Constrói três camadas analíticas:
-
-- `analitico_ciclo`: uma linha por ciclo.
-- `analitico_marca_ciclo`: uma linha por ciclo e marca.
-- `analitico_mix_ciclo`: uma linha por ciclo, marca e categoria.
-
-### `03_realizado_x_orcado.sql`
-Compara realizado e orçado por ciclo, KPI e marca, calculando diferenças e atingimento percentual.
+Scripts em BigQuery Standard SQL para a versão de portfólio com dados sintéticos.
 
 ## Ordem de execução
 
-1. Executar `01_auditoria_fontes.sql`.
-2. Executar `02_tabelas_analiticas.sql`.
-3. Executar `03_realizado_x_orcado.sql`.
+1. `01_auditoria_fontes.sql` — contagens, nulos, duplicidades, integridade referencial e domínios.
+2. `02_tabelas_analiticas.sql` — cria `analitico_canal_ciclo`, `analitico_marca_ciclo` e `analitico_mix_ciclo`.
+3. `03_realizado_x_orcado.sql` — cria a comparação entre realizado e orçado.
 
-Antes da execução, é necessário carregar os CSVs como tabelas no BigQuery e substituir `SEU_PROJETO.SEUDATASET` pelo identificador real do projeto e dataset.
+## Preparar o BigQuery
 
-## Cuidados analíticos
+1. Crie um dataset para o projeto de portfólio.
+2. Carregue os CSVs sintéticos da pasta `data/` como tabelas `raw_pedidos`, `raw_base`, `raw_materiais`, `raw_cadastro` e `raw_orcamento`.
+3. Em cada script, substitua `SEU_PROJETO.SEUDATASET` pelo seu ID de projeto e nome do dataset.
+4. Execute os scripts na ordem acima.
 
-- Preservar a granularidade de cada fonte.
-- Evitar duplicações ao integrar tabelas.
-- Manter `BOT` e `BOTI` separados quando não existir regra documentada de equivalência.
-- Não comparar realizado e orçamento com escopos incompatíveis.
-- Não tratar premissas dos dados sintéticos como regras oficiais do case original.
+## Premissas de modelagem
 
-**Nota:** os dados deste repositório são sintéticos e destinados exclusivamente à demonstração técnica.
+- Todos os dados usados nesta versão são sintéticos.
+- `analitico_canal_ciclo`: 1 linha por ciclo.
+- `analitico_marca_ciclo`: 1 linha por ciclo + marca.
+- `analitico_mix_ciclo`: 1 linha por ciclo + marca + categoria.
+- `realizado_x_orcado_ciclo`: 1 linha por ciclo + KPI + marca.
+- Penetração da marca = compradores distintos da marca / ativas totais do canal.
+- `gmv_por_comprador` é uma métrica derivada demonstrativa, não substitui a definição de RPA do case.
+- A simulação de reinício nos dados sintéticos é uma aproximação didática e não uma regra oficial do case original.
+- RPA e UPA não possuem orçamento direto; não invente orçamento ausente nem compare escopos incompatíveis.
