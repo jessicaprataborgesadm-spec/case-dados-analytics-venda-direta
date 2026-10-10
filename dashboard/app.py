@@ -165,7 +165,17 @@ def build_analytics():
 def fmt_currency(v, decimals=1):
     if pd.isna(v):
         return "—"
-    return f"R$ {v / 1_000_000:,.{decimals}f} mi".replace(",", "X").replace(".", ",").replace("X", ".")
+
+    v = float(v)
+
+    if abs(v) >= 1_000_000:
+        texto = f"R$ {v / 1_000_000:,.{decimals}f} mi"
+    elif abs(v) >= 1_000:
+        texto = f"R$ {v / 1_000:,.1f} mil"
+    else:
+        texto = f"R$ {v:,.2f}"
+
+    return texto.replace(",", "X").replace(".", ",").replace("X", ".")
 
 def fmt_int(v):
     if pd.isna(v):
