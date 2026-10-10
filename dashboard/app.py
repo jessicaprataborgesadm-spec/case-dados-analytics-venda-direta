@@ -289,8 +289,8 @@ with st.sidebar:
         </div>
         """, unsafe_allow_html=True
     )
-    st.markdown("### NAVEGAR")
-       page = st.radio(
+       st.markdown("### NAVEGAR")
+    page = st.radio(
         "Perspectiva da análise",
         [
             "Visão geral",
