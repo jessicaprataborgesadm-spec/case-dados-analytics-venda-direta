@@ -189,16 +189,47 @@ def fmt_pct(v):
 
 def style_fig(fig, height=330):
     fig.update_layout(
+        template="plotly_white",
         height=height,
         margin=dict(l=8, r=10, t=35, b=8),
         paper_bgcolor=WHITE,
         plot_bgcolor=WHITE,
-        font=dict(family="DM Sans, sans-serif", color=INK, size=12),
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0),
-        hoverlabel=dict(bgcolor=NAVY, font_color=WHITE),
+        font=dict(
+            family="DM Sans, sans-serif",
+            color=NAVY,
+            size=12
+        ),
+        legend=dict(
+            orientation="h",
+            yanchor="bottom",
+            y=1.02,
+            xanchor="left",
+            x=0,
+            font=dict(color=NAVY, size=11),
+            bgcolor="rgba(255,255,255,0.95)"
+        ),
+        hoverlabel=dict(
+            bgcolor=NAVY,
+            font_color=WHITE
+        )
     )
-    fig.update_xaxes(showgrid=False, linecolor=GRID, zeroline=False)
-    fig.update_yaxes(showgrid=True, gridcolor=GRID, zeroline=False)
+
+    fig.update_xaxes(
+        showgrid=False,
+        linecolor=GRID,
+        zeroline=False,
+        tickfont=dict(color=NAVY, size=11),
+        title_font=dict(color=NAVY, size=12)
+    )
+
+    fig.update_yaxes(
+        showgrid=True,
+        gridcolor=GRID,
+        zeroline=False,
+        tickfont=dict(color=NAVY, size=11),
+        title_font=dict(color=NAVY, size=12)
+    )
+
     return fig
 
 def money_axis(fig):
