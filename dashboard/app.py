@@ -290,9 +290,15 @@ with st.sidebar:
         """, unsafe_allow_html=True
     )
     st.markdown("### NAVEGAR")
-    page = st.radio(
+       page = st.radio(
         "Perspectiva da análise",
-        ["Visão geral", "Diagnóstico do ciclo", "Produtividade", "Mix de produtos"],
+        [
+            "Visão geral",
+            "Conciliação do GMV",
+            "Diagnóstico do ciclo",
+            "Produtividade",
+            "Mix de produtos",
+        ],
         label_visibility="collapsed",
     )
     cycle_options = sorted(channel["nr_ciclo"].astype(int).tolist())
@@ -343,30 +349,106 @@ if page == "Visão geral":
                 f"Performance do canal ao longo dos ciclos, com aprofundamento em {cycle_label}.")
     st.markdown('<span class="tag">DADOS SINTÉTICOS • DEMONSTRAÇÃO</span>', unsafe_allow_html=True)
     st.write("")
-    k1, k2, k3, k4, k5 = st.columns(5)
-    k1.metric("GMV do canal", fmt_currency(total_channel_gmv))
-    k2.metric("GMV · marcas orçadas", fmt_currency(budgeted_gmv_realized),
-              delta=fmt_pct(budgeted_gmv_realized / budgeted_gmv_budget - 1) if budgeted_gmv_budget else None)
-    k3.metric("Ativas", fmt_int(active_count))
-    k4.metric("RPA", f"R$ {rpa_value:,.0f}".replace(",", "."))
-    k5.metric("UPA", f"{upa_value:.1f}".replace(".", ","))
+       k1, k2, k3, k4, k5, k6 = st.columns(6)
+
+    k1.metric(
+        "GMV do canal",
+        fmt_currency(total_channel_gmv)
+    )
+
+    k2.metric(
+        "GMV marcas realizado",
+        fmt_currency(budgeted_gmv_realized),
+        delta=(
+            fmt_pct(budgeted_gmv_realized / budgeted_gmv_budget - 1)
+            if budgeted_gmv_budget else None
+        )
+    )
+
+    k3.metric(
+        "GMV marcas orçado",
+        fmt_currency(budgeted_gmv_budget)
+    )
+
+    k4.metric("Ativas", fmt_int(active_count))
+
+    k5.metric(
+        "RPA",
+        f"R$ {rpa_value:,.0f}".replace(",", ".")
+    )
+
+    k6.metric(
+        "UPA",
+        f"{upa_value:.1f}".replace(".", ",")
+    )
 
     st.write("")
     left, right = st.columns([1.45, 1])
     with left:
         st.markdown("### Trajetória de GMV")
-        trend = channel.sort_values("nr_ciclo")
+               trend = channel.sort_values("nr_ciclo").copy()
+
+        cycle_text = trend["nr_ciclo"].astype(int).astype(str)
+        trend["ciclo_label"] = (
+            cycle_text.str[:4] + "-" + cycle_text.str[-2:]
+        )
+
+        selected = trend["nr_ciclo"].astype(int) == int(selected_cycle)
+        marker_colors = [
+            PINK if is_selected else BLUE
+            for is_selected in selected
+        ]
+        marker_sizes = [
+            10 if is_selected else 6
+            for is_selected in selected
+        ]
+
         fig = go.Figure()
+
         fig.add_trace(go.Scatter(
-            x=trend["nr_ciclo"].astype(str), y=trend["gmv"],
-            mode="lines+markers", name="GMV do canal",
-            line=dict(color=BLUE, width=3), marker=dict(size=6),
-            fill="tozeroy", fillcolor="rgba(47,93,124,0.09)"
+            x=trend["ciclo_label"],
+            y=trend["gmv"],
+            mode="lines+markers",
+            name="GMV do canal",
+            line=dict(color=BLUE, width=3),
+            marker=dict(
+                color=marker_colors,
+                size=marker_sizes,
+                line=dict(color=WHITE, width=1)
+            ),
+            fill="tozeroy",
+            fillcolor="rgba(47,93,124,0.09)",
+            hovertemplate=(
+                "Ciclo %{x}<br>"
+                "GMV: R$ %{y:,.2f}"
+                "<extra></extra>"
+            )
         ))
-        fig.add_vline(x=str(selected_cycle), line_dash="dot", line_color=PINK, line_width=2)
-        fig.update_layout(yaxis_tickprefix="R$ ", yaxis_tickformat="~s",
-                          xaxis_title="Ciclo comercial", yaxis_title="Receita")
-        st.plotly_chart(style_fig(fig, 350), use_container_width=True)
+
+        tickvals = trend["ciclo_label"].iloc[::2].tolist()
+        last_cycle = trend["ciclo_label"].iloc[-1]
+
+        if last_cycle not in tickvals:
+            tickvals.append(last_cycle)
+
+        fig.update_layout(
+            yaxis_tickprefix="R$ ",
+            yaxis_tickformat="~s",
+            xaxis_title="Ciclo comercial",
+            yaxis_title="Receita"
+        )
+
+        fig.update_xaxes(
+            type="category",
+            tickmode="array",
+            tickvals=tickvals,
+            tickangle=0
+        )
+
+        st.plotly_chart(
+            style_fig(fig, 350),
+            use_container_width=True
+        )
     with right:
         st.markdown("### GMV por marca")
         brand_data = bcycle[bcycle["des_marca"].isin(brand_budgeted)].copy()
@@ -545,6 +627,165 @@ elif page == "Mix de produtos":
         "PRÓXIMA PERGUNTA ANALÍTICA",
         "A distribuição por categoria aponta onde o GMV está concentrado dentro da marca. Para transformar isso em recomendação, "
         "seria preciso comparar a composição entre ciclos, avaliar volume e compradores e validar se as diferenças são consistentes."
+    )
+elif page == "Conciliação do GMV":
+    page_header(
+        "02 / APURAÇÃO DE ESCOPO",
+        "Por que o GMV do canal é diferente?",
+        f"Conciliação do realizado por marca no ciclo {cycle_label}."
+    )
+
+    all_brand = bcycle.copy()
+
+    unbudgeted_brands = all_brand[
+        ~all_brand["des_marca"].isin(brand_budgeted)
+    ].copy()
+
+    unbudgeted_gmv = float(unbudgeted_brands["gmv"].sum())
+    channel_gmv = float(total_channel_gmv)
+    brands_realized = float(budgeted_gmv_realized)
+
+    share_unbudgeted = (
+        unbudgeted_gmv / channel_gmv
+        if channel_gmv else 0
+    )
+
+    col1, col2, col3, col4 = st.columns(4)
+
+    col1.metric(
+        "GMV total do canal",
+        fmt_currency(channel_gmv)
+    )
+
+    col2.metric(
+        "GMV realizado • marcas orçadas",
+        fmt_currency(brands_realized)
+    )
+
+    col3.metric(
+        "GMV sem orçamento direto",
+        fmt_currency(unbudgeted_gmv)
+    )
+
+    col4.metric(
+        "Participação sem orçamento direto",
+        fmt_pct(share_unbudgeted)
+    )
+
+    st.write("")
+
+    st.markdown("### A ponte entre as duas visões")
+
+    fig = go.Figure(
+        go.Waterfall(
+            name="Conciliação",
+            orientation="v",
+            measure=["relative", "relative", "total"],
+            x=[
+                "Marcas com orçamento",
+                "Marcas sem orçamento direto",
+                "GMV total do canal",
+            ],
+            y=[
+                brands_realized,
+                unbudgeted_gmv,
+                0,
+            ],
+            text=[
+                fmt_currency(brands_realized),
+                fmt_currency(unbudgeted_gmv),
+                fmt_currency(channel_gmv),
+            ],
+            textposition="outside",
+            connector={"line": {"color": GRID}},
+            increasing={"marker": {"color": BLUE}},
+            totals={"marker": {"color": PINK}},
+        )
+    )
+
+    fig.update_layout(
+        showlegend=False,
+        yaxis_tickprefix="R$ ",
+        yaxis_tickformat="~s",
+        xaxis_title="Composição do GMV",
+        yaxis_title="Receita",
+    )
+
+    st.plotly_chart(
+        style_fig(fig, 360),
+        use_container_width=True,
+        theme=None,
+    )
+
+    st.markdown("### Realizado por marca e disponibilidade de orçamento")
+
+    budget_by_brand = orcamento[
+        (orcamento["nr_ciclo"] == selected_cycle)
+        & (orcamento["des_kpi"].str.lower() == "gmv")
+        & (orcamento["des_marca"].isin(brand_budgeted))
+    ][["des_marca", "vlr_kpi"]].rename(
+        columns={"vlr_kpi": "orcado"}
+    )
+
+    brand_table = all_brand[
+        ["des_marca", "gmv"]
+    ].merge(
+        budget_by_brand,
+        on="des_marca",
+        how="left",
+    )
+
+    brand_table["GMV realizado"] = brand_table["gmv"].map(fmt_currency)
+
+    brand_table["GMV orçado"] = brand_table["orcado"].apply(
+        lambda value: fmt_currency(value)
+        if pd.notna(value) else "Sem orçamento"
+    )
+
+    brand_table["Atingimento"] = brand_table.apply(
+        lambda row: fmt_pct(row["gmv"] / row["orcado"])
+        if pd.notna(row["orcado"]) and row["orcado"] != 0
+        else "Sem orçamento",
+        axis=1,
+    )
+
+    brand_table = brand_table.rename(
+        columns={"des_marca": "Marca"}
+    )
+
+    st.dataframe(
+        brand_table[
+            ["Marca", "GMV realizado", "GMV orçado", "Atingimento"]
+        ],
+        hide_index=True,
+        use_container_width=True,
+    )
+
+    names_without_budget = ", ".join(
+        sorted(unbudgeted_brands["des_marca"].astype(str).unique())
+    ) or "Nenhuma"
+
+    reconciled = abs(
+        brands_realized + unbudgeted_gmv - channel_gmv
+    ) < 0.01
+
+    reconciliation_text = (
+        "A soma dos escopos fecha com o GMV total."
+        if reconciled
+        else "Existe uma diferença residual a investigar na conciliação."
+    )
+
+    insight(
+        "ACHADO DE ESCOPO",
+        (
+            f"No conjunto sintético, o GMV do canal é composto pelo "
+            f"realizado das marcas com orçamento e por {names_without_budget}, "
+            f"que não possui orçamento direto. "
+            f"{reconciliation_text} "
+            "Essa diferença não prova, por si só, um erro nos dados. "
+            "Ela demonstra por que realizado e orçamento precisam ser "
+            "comparados dentro do mesmo escopo."
+        ),
     )
 
 st.markdown("---")
