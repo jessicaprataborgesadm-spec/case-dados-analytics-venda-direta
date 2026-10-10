@@ -10,15 +10,8 @@ import streamlit as st
 # A lógica de consulta/modelagem também está documentada em /sql.
 # ---------------------------------------------------------------------
 APP_DIR = Path(__file__).resolve().parent
-ROOT = APP_DIR.parents[1]
-
-DATA = next(
-    (
-        p for p in (ROOT / "data", ROOT / "data" / "data")
-        if (p / "raw_pedidos.csv").exists()
-    ),
-    ROOT / "data",
-)
+ROOT = APP_DIR.parent
+DATA = ROOT / "data"
 
 st.set_page_config(
     page_title="Venda Direta | Performance Analytics",
