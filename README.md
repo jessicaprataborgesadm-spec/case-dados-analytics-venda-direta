@@ -44,6 +44,29 @@ O dashboard lê os CSVs sintéticos da pasta `data/`. A versão atual não exige
 
 Explore as cinco páginas da aplicação: Visão geral, Conciliação do GMV, Diagnóstico do ciclo, Produtividade e Mix de produtos. O dashboard utiliza exclusivamente os dados sintéticos presentes neste repositório.
 
+## Prévia do dashboard
+
+Todas as visualizações abaixo usam dados sintéticos e demonstrativos.
+
+### Visão geral
+![Visão geral do dashboard](assets/screenshots/visao-geral.png)
+
+### Conciliação do GMV
+![Conciliação do GMV: indicadores e waterfall](assets/screenshots/conciliacao-gmv-01.png)
+
+![Conciliação do GMV: tabela por marca e leitura de escopo](assets/screenshots/conciliacao-gmv-02.png)
+
+### Diagnóstico do ciclo
+![Diagnóstico do ciclo: população e movimento da base](assets/screenshots/diagnostico-ciclo-01.png)
+
+![Diagnóstico do ciclo: alcance das marcas e conferência](assets/screenshots/diagnostico-ciclo-02.png)
+
+### Produtividade
+![Produtividade: evolução de RPA e UPA](assets/screenshots/produtividade.png)
+
+### Mix de produtos
+![Mix de produtos para todas as marcas](assets/screenshots/mix-produtos-todas-marcas.png)
+
 ## Arquitetura do projeto
 
 ```text
